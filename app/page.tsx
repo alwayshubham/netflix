@@ -1,11 +1,66 @@
-import Navbar from "@/components/header/navbar";
-import Image from "next/image";
 
-export default function Home() {
+import MovieBanner from "@/components/movies/MovieBanner";
+import { MovieRow } from "@/components/movie-row";
+import { prisma } from "@/lib/prisma";
+import Header from "@/components/header/navbar";
+
+export default async function Home() {
+  const popularMovies = await prisma.movie.findMany({
+    where: {
+      category: "popular",
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 10,
+  });
+
+  const upcomingMovies = await prisma.movie.findMany({
+    where: {
+      category: "upcoming",
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 10,
+  });
+
+  const trendingMovies = await prisma.movie.findMany({
+    where: {
+      category: "trending",
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 10,
+  }); 
+  const featuredMovie = await prisma.movie.findFirst({
+    where: {
+      category: "trailer",
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  }); 
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <button>hello WORLD</button>
-      <Navbar/>
+    <div className="min-h-screen bg-black text-white">
+      <Header />
+      <main className="space-y-12 pb-20">
+        {featuredMovie && (
+          <MovieBanner
+            id={featuredMovie.id}
+            movieName={featuredMovie.movieName}
+            description={featuredMovie.description || ""}
+            videoUrl={featuredMovie.videoUrl}
+          />
+        )}
+
+        <section className="  px-4 sm:px-6 space-y-8">
+          <MovieRow title="Trendings" movies={trendingMovies} />
+          <MovieRow title="Populars" movies={popularMovies} />
+          <MovieRow title="Upcomings" movies={upcomingMovies} />
+        </section>
+      </main>
     </div>
   );
-}
+};
